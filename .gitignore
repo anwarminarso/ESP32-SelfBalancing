@@ -2,3 +2,6 @@
 **/.Debug/
 **/Release/
 **/__vm/
+*.vcxproj
+*.filters
+*.user
