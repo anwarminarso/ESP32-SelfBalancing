@@ -1,0 +1,48 @@
+
+body {
+  padding-top: 3.5rem;
+}
+
+.jumbotron {
+    background-image: url(blackcircuit2.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    color: white;
+}
+.jumbotron .container {
+    min-height: 160px;
+}
+display-h {
+    font-size: 4.5rem;
+    font-weight: 100;
+    line-height: 1.2;
+}
+
+.chart {
+    position: relative;
+    display: inline-block;
+    width: 100px;
+    height: 100px;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+.chart canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.percent {
+    display: inline-block;
+    line-height: 290px;
+    z-index: 2;
+    font-size: 4em;
+    margin-left: 100px;
+}
+
+.percent:after {
+    content: '%';
+    margin-left: 0.1em;
+    font-size: .8em;
+}
