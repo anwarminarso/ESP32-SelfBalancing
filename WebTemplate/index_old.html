@@ -1,0 +1,258 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Theme Template for Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap theme -->
+    <link href="bootstrap-theme.min.css" rel="stylesheet" />
+    <link href="docs.min.css" rel="stylesheet" />
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <link href="ie10-viewport-bug-workaround.css" rel="stylesheet" />
+
+    <link href="bootstrap-slider.min.css" rel="stylesheet" />
+
+    <!-- Custom styles for this template -->
+    <link href="theme.css" rel="stylesheet">
+    <script src="ie-emulation-modes-warning.js"></script>
+    <link href="jumbotron.css" rel="stylesheet" />
+    <style type="text/css">
+        #cnv {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">ESP32 Self Balancing Robot</a>
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">Dashboard</a></li>
+                    <li><a href="configuration.html">Configuration</a></li>
+                </ul>
+            </div>
+            <!--/.nav-collapse -->
+        </div>
+    </nav>
+
+    <div class="jumbotron">
+        <div class="container">
+            <h1 class="display-3">Welcome,</h1>
+            <p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p>
+        </div>
+    </div>
+    <div class="container theme-showcase" role="main">
+        <div class="row">
+            <div class="col-sm-8">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Orientation</h3>
+                    </div>
+                    <div class="panel-body">
+                        <canvas id="cnv"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Data</h3>
+                    </div>
+                    <div class="panel-body">
+                           
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="jquery-3.4.1.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <script src="docs.min.js"></script>
+    <script src="ie10-viewport-bug-workaround.js"></script>
+    <script src="bootstrap-slider.min.js"></script>
+
+    <script type="text/javascript">
+        var Vertex = function (x, y, z) {
+            this.x = parseFloat(x);
+            this.y = parseFloat(y);
+            this.z = parseFloat(z);
+        };
+
+        var Vertex2D = function (x, y) {
+            this.x = parseFloat(x);
+            this.y = parseFloat(y);
+        };
+        var Cube = function (center, side) {
+            // Generate the vertices
+            var d = side / 2;
+
+            this.vertices = [
+                new Vertex(center.x - d, center.y - d, center.z + d),
+                new Vertex(center.x - d, center.y - d, center.z - d),
+                new Vertex(center.x + d, center.y - d, center.z - d),
+                new Vertex(center.x + d, center.y - d, center.z + d),
+                new Vertex(center.x + d, center.y + d, center.z + d),
+                new Vertex(center.x + d, center.y + d, center.z - d),
+                new Vertex(center.x - d, center.y + d, center.z - d),
+                new Vertex(center.x - d, center.y + d, center.z + d)
+            ];
+
+            // Generate the faces
+            this.faces = [
+                [this.vertices[0], this.vertices[1], this.vertices[2], this.vertices[3]],
+                [this.vertices[3], this.vertices[2], this.vertices[5], this.vertices[4]],
+                [this.vertices[4], this.vertices[5], this.vertices[6], this.vertices[7]],
+                [this.vertices[7], this.vertices[6], this.vertices[1], this.vertices[0]],
+                [this.vertices[7], this.vertices[0], this.vertices[3], this.vertices[4]],
+                [this.vertices[1], this.vertices[6], this.vertices[5], this.vertices[2]]
+            ];
+        };
+
+        function project(M) {
+            return new Vertex2D(M.x, M.z);
+        }
+
+        function render(objects, ctx, dx, dy) {
+            // Clear the previous frame
+            ctx.clearRect(0, 0, 2 * dx, 2 * dy);
+
+            // For each object
+            for (var i = 0, n_obj = objects.length; i < n_obj; ++i) {
+                // For each face
+                for (var j = 0, n_faces = objects[i].faces.length; j < n_faces; ++j) {
+                    // Current face
+                    var face = objects[i].faces[j];
+
+                    // Draw the first vertex
+                    var P = project(face[0]);
+                    ctx.beginPath();
+                    ctx.moveTo(P.x + dx, -P.y + dy);
+
+                    // Draw the other vertices
+                    for (var k = 1, n_vertices = face.length; k < n_vertices; ++k) {
+                        P = project(face[k]);
+                        ctx.lineTo(P.x + dx, -P.y + dy);
+                    }
+
+                    // Close the path and draw the face
+                    ctx.closePath();
+                    ctx.stroke();
+                    ctx.fill();
+                }
+            }
+        }
+        $(function () {
+            var canvas = document.getElementById('cnv');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            var dx = canvas.width / 2;
+            var dy = canvas.height / 2;
+
+            // Objects style
+            var ctx = canvas.getContext('2d');
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillStyle = 'rgba(0, 150, 255, 0.3)';
+
+            // Create the cube
+            var cube_center = new Vertex(0, 11 * dy / 10, 0);
+            var cube = new Cube(cube_center, dy);
+            var objects = [cube];
+
+            // First render
+            render(objects, ctx, dx, dy);
+
+            // Events
+            var mousedown = false;
+            var mx = 0;
+            var my = 0;
+
+            canvas.addEventListener('mousedown', initMove);
+            document.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', stopMove);
+
+            // Rotate a vertice
+            function rotate(M, center, theta, phi) {
+                // Rotation matrix coefficients
+                var ct = Math.cos(theta);
+                var st = Math.sin(theta);
+                var cp = Math.cos(phi);
+                var sp = Math.sin(phi);
+
+                // Rotation
+                var x = M.x - center.x;
+                var y = M.y - center.y;
+                var z = M.z - center.z;
+
+                M.x = ct * x - st * cp * y + st * sp * z + center.x;
+                M.y = st * x + ct * cp * y - ct * sp * z + center.y;
+                M.z = sp * y + cp * z + center.z;
+            }
+
+            // Initialize the movement
+            function initMove(evt) {
+                clearTimeout(autorotate_timeout);
+                mousedown = true;
+                mx = evt.clientX;
+                my = evt.clientY;
+            }
+
+            function move(evt) {
+                if (mousedown) {
+                    var theta = (evt.clientX - mx) * Math.PI / 360;
+                    var phi = (evt.clientY - my) * Math.PI / 180;
+
+                    for (var i = 0; i < 8; ++i)
+                        rotate(cube.vertices[i], cube_center, theta, phi);
+
+                    mx = evt.clientX;
+                    my = evt.clientY;
+
+                    render(objects, ctx, dx, dy);
+                }
+            }
+
+            function stopMove() {
+                mousedown = false;
+                autorotate_timeout = setTimeout(autorotate, 2000);
+            }
+
+            function autorotate() {
+                for (var i = 0; i < 8; ++i)
+                    rotate(cube.vertices[i], cube_center, -Math.PI / 720, Math.PI / 720);
+
+                render(objects, ctx, dx, dy);
+
+                autorotate_timeout = setTimeout(autorotate, 30);
+            }
+            autorotate_timeout = setTimeout(autorotate, 2000);
+        });
+    </script>
+</body>
+</html>

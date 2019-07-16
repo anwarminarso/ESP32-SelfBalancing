@@ -1,0 +1,333 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    
+    <title>ESP32 Self Balancing Robot</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap theme -->
+    <link href="bootstrap-theme.min.css" rel="stylesheet" />
+    <link href="docs.min.css" rel="stylesheet" />
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <link href="ie10-viewport-bug.css" rel="stylesheet" />
+
+    <link href="bootstrap-slider.min.css" rel="stylesheet" />
+
+    <!-- Custom styles for this template -->
+    <link href="theme.css" rel="stylesheet">
+    <script src="ie-emulation-modes.js"></script>
+    <link href="jumbotron.css" rel="stylesheet" />
+</head>
+
+<body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">ESP32 Self Balancing Robot</a>
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="/index.html">Dashboard</a></li>
+                    <li class="active"><a href="#">Configuration</a></li>
+                </ul>
+            </div>
+            <!--/.nav-collapse -->
+        </div>
+    </nav>
+
+    
+    <div class="jumbotron">
+        <div class="container">
+            <!--<h1 class="display-3">Welcome,</h1>
+            <p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p>-->
+        </div>
+    </div>
+
+    <div class="container theme-showcase" role="main">
+
+        <div class="page-header">
+            <h1>PID</h1>
+        </div>
+        <form>
+            <div class="row">
+                <div class="col-sm-4">
+                    <div class="panel panel-success">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Yaw</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <label for="yawP">P&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="yawP" />
+                            </div>
+                            <div class="form-group">
+                                <label for="yawI">I&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="yawI" />
+                            </div>
+                            <div class="form-group">
+                                <label for="yawD">D&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="yawD" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                   <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Pitch</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <label for="pitchP">P&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="pitchP" />
+                            </div>
+                            <div class="form-group">
+                                <label for="pitchI">I&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="pitchI" />
+                            </div>
+                            <div class="form-group">
+                                <label for="pitchD">D&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="pitchD" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                   <div class="panel panel-danger">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Roll</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <label for="rollP">P&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="rollP" />
+                            </div>
+                            <div class="form-group">
+                                <label for="rollI">I&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="rollI" />
+                            </div>
+                            <div class="form-group">
+                                <label for="rollD">D&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="rollD" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+        
+        <div class="page-header">
+            <h1>Gyroscope</h1>
+        </div>
+        <form>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="panel panel-warning">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Offset</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <label for="gyroOffsetX">X&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="gyroOffsetX" />
+                            </div>
+                            <div class="form-group">
+                                <label for="gyroOffsetY">Y&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="gyroOffsetY" />
+                            </div>
+                            <div class="form-group">
+                                <label for="gyroOffsetZ">Z&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="gyroOffsetZ" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        
+        <div class="page-header">
+            <h1>Accelerometer</h1>
+        </div>
+        <form>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="panel panel-success">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Minimum</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <label for="accelMinX">X&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="accelMinX" />
+                            </div>
+                            <div class="form-group">
+                                <label for="accelMinY">Y&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="accelMinY" />
+                            </div>
+                            <div class="form-group">
+                                <label for="accelMinZ">Z&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="accelMinZ" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Maximum</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <label for="accelMaxX">X&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="accelMaxX" />
+                            </div>
+                            <div class="form-group">
+                                <label for="accelMaxY">Y&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="accelMaxY" />
+                            </div>
+                            <div class="form-group">
+                                <label for="accelMaxZ">Z&nbsp;&nbsp;&nbsp;</label>
+                                <input type="text" id="accelMaxZ" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="jquery-3.4.1.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <script src="docs.min.js"></script>
+    <script src="ie10-viewport-bug.js"></script>
+    <script src="bootstrap-slider.min.js"></script>
+
+
+    <script type="text/javascript">
+        $(function () {
+            $("#yawP").slider({
+                step: 1,
+                min: 0,
+                max: 255
+            });
+            $("#yawI").slider({
+                step: 1,
+                min: 0,
+                max: 255
+            });
+            $("#yawD").slider({
+                step: 1,
+                min: 0,
+                max: 255
+            });
+            
+            $("#pitchP").slider({
+                step: 1,
+                min: 0,
+                max: 255
+            });
+            $("#pitchI").slider({
+                step: 1,
+                min: 0,
+                max: 255
+            });
+            $("#pitchD").slider({
+                step: 1,
+                min: 0,
+                max: 255
+            });
+            
+            $("#rollP").slider({
+                step: 1,
+                min: 0,
+                max: 255
+            });
+            $("#rollI").slider({
+                step: 1,
+                min: 0,
+                max: 255
+            });
+            $("#rollD").slider({
+                step: 1,
+                min: 0,
+                max: 255
+            });
+
+
+            
+            $("#gyroOffsetX").slider({
+                step: 1,
+                min: -255,
+                max: 255
+            });
+            $("#gyroOffsetY").slider({
+                step: 1,
+                min: -255,
+                max: 255
+            });
+            $("#gyroOffsetZ").slider({
+                step: 1,
+                min: -255,
+                max: 255
+            });
+            $("#accelMinX").slider({
+                step: 1,
+                min: -10000,
+                max: 0,
+                reversed : true
+            });
+            $("#accelMinY").slider({
+                step: 1,
+                min: -10000,
+                max: 0,
+                reversed : true
+            });
+            $("#accelMinZ").slider({
+                step: 1,
+                min: -10000,
+                max: 0,
+                reversed : true
+            });
+            
+            $("#accelMaxX").slider({
+                step: 1,
+                min: 0,
+                max: 10000
+            });
+            $("#accelMaxY").slider({
+                step: 1,
+                min: 0,
+                max: 10000
+            });
+            $("#accelMaxZ").slider({
+                step: 1,
+                min: 0,
+                max: 10000
+            });
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,209 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Theme Template for Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap theme -->
+    <link href="bootstrap-theme.min.css" rel="stylesheet" />
+    <link href="docs.min.css" rel="stylesheet" />
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <link href="ie10-viewport-bug-workaround.css" rel="stylesheet" />
+
+    <link href="bootstrap-slider.min.css" rel="stylesheet" />
+
+    <!-- Custom styles for this template -->
+    <link href="theme.css" rel="stylesheet">
+    <script src="ie-emulation-modes-warning.js"></script>
+    <link href="jumbotron.css" rel="stylesheet" />
+    <style type="text/css">
+        #cnv {
+            background: #FDB;
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">ESP32 Self Balancing Robot</a>
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">Dashboard</a></li>
+                    <li><a href="configuration.html">Configuration</a></li>
+                </ul>
+            </div>
+            <!--/.nav-collapse -->
+        </div>
+    </nav>
+
+    <div class="jumbotron">
+        <div class="container">
+            <h1 class="display-3">Welcome,</h1>
+            <p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p>
+        </div>
+    </div>
+    <div class="container theme-showcase" role="main">
+        <div class="row">
+            <div class="col-sm-8">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Orientation</h3>
+                    </div>
+                    <div class="panel-body">
+                        <canvas id="cnv" class="zdog-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Data</h3>
+                    </div>
+                    <div class="panel-body">
+                           
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="jquery-3.4.1.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <script src="docs.min.js"></script>
+    <script src="ie10-viewport-bug-workaround.js"></script>
+    <script src="bootstrap-slider.min.js"></script>
+    <script src="zdog.dist.js"></script>
+    <script src="zfont.min.js"></script>
+    <script type="text/javascript">
+        var viewRotation = new Zdog.Vector();
+        function degToRad(degrees) {
+            var pi = Math.PI;
+            return degrees * (pi / 180);
+        }
+        function rotate(illo, yaw, pitch, roll) {
+
+            heading = degToRad(yaw);
+            bank = degToRad(roll);
+            attitude = degToRad(pitch);
+            var c1 = Math.cos(heading / 2);
+            var c2 = Math.cos(attitude / 2);
+            var c3 = Math.cos(bank / 2);
+            var s1 = Math.sin(heading / 2);
+            var s2 = Math.sin(attitude / 2);
+            var s3 = Math.sin(bank / 2);
+
+
+            //angle = 2 * acos(c1c2c3 + s1s2s3)= 2 * acos(0.7071) = 90 degrees
+            var x = (c1 * c2 * s3) - (s1 * s2 * c3)
+            var y = (c1 * s2 * c3) + (s1 * c2 * s3)
+            var z = (s1 * c2 * c3) - (c1 * s2 * s3)
+            //illo.rotate.x = x;
+            //illo.rotate.y = y;
+            //illo.rotate.y = z;
+            viewRotation['x'] = attitude;
+            viewRotation['y'] = heading;
+            viewRotation['z'] = bank;
+            //illo.rotate.y += yaw;
+            illo.rotate.set(viewRotation);
+        }
+        $(function () {
+            Zfont.init(Zdog);
+
+            let isSpinning = true;
+            // create illo
+            let illo = new Zdog.Illustration({
+                // set canvas with selector
+                element: '.zdog-canvas',
+                dragRotate: true,
+                resize: true,
+                onDragStart: function () {
+                    isSpinning = false;
+                }
+            });
+
+            let board = new Zdog.Box({
+                addTo: illo,
+                width: 80,
+                height: 20,
+                depth: 160,
+                //rotate: { x: -Zdog.TAU / 8, y: Zdog.TAU / 8 },
+                stroke: false,
+                color: '#8e44ad',
+                topFace: '#9b59b6',
+                //rearFace: '#9b59b6',
+                //leftFace: '#1abc9c',
+                //rightFace: '#27ae60',
+                //frontFace: '#9b59b6',
+                bottomFace: '#2c3e50'
+            });
+
+            
+            let arrowNeck = new Zdog.Cylinder({
+                addTo: board,
+                diameter: 10,
+                length: 20,
+                stroke: false,
+                color: '#EA0',
+                translate: { z: 90 }
+            });
+
+            let arrowHead = new Zdog.Cone({
+                addTo: arrowNeck,
+                diameter: 20,
+                length: 40,
+                stroke: false,
+                color: '#C25',
+                backface: '#2c3e50',
+                translate: { z: 10 }
+            });
+
+            //rotate(illo, 90, 45, 0);
+            //rotate(illo, 1.570796327, 0.785398163, 0);
+            //rotate(illo, 1.570796327, 0.785398163, 0);
+            
+            illo.updateRenderGraph();
+            var canvas = document.getElementById('cnv');
+            var ctx = canvas.getContext("2d")
+            function animate() {
+                illo.rotate.y += isSpinning ? 0.03 : 0;
+                //illo.rotate.z += isSpinning ? 0.01 : 0;
+                //illo.rotate.x += isSpinning ? 0.01 : 0;
+                illo.updateRenderGraph();
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+
+
+        });
+
+
+    </script>
+</body>
+</html>
