@@ -8,10 +8,8 @@
 
 // Global Variable redefinition
 raw_imu_t rawData;
-imu_t imuData;
 DCM dcm;
-float YPR[3] = { 0, 0, 0 }; // Yaw Pitch Roll (degree)
-
+all_data_t allData;
 
 SimpleMPU9250 mpu;
 
@@ -38,6 +36,7 @@ void initSensor() {
 		accelScale[i] = (accelLSB / (accelMinMax[i + 3] - accelOffset[i]));
 	}
 	initMotorEncoder();
+
 }
 void readSensor() {
 	mpu.getRawMotion6(rawSensor);
@@ -46,9 +45,9 @@ void readSensor() {
 
 	for (int i = 0; i < 3; i++)
 	{
-		imuData.accel[i] = (rawData.accel[i] - accelOffset[i]) * accelScale[i] / accelLSB;
-		imuData.gyro[i] = (rawData.gyro[i] - gyroOffset[i]) / gyroLSB;
+		allData.imuData.accel[i] = (rawData.accel[i] - accelOffset[i]) * accelScale[i] / accelLSB;
+		allData.imuData.gyro[i] = (rawData.gyro[i] - gyroOffset[i]) / gyroLSB;
 	}
-	dcm.Update(imuData);
-	dcm.getYawPitchRoll(YPR);
+	dcm.Update(allData.imuData);
+	dcm.getYawPitchRoll(allData.YPR);
 }

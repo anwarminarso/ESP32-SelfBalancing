@@ -152,6 +152,27 @@
                     </div>
                 </div>
             </div>
+            <div class="col-sm-4">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Motor</h3>
+                    </div>
+                    <div class="panel-body">
+                        <form>
+                            <fieldset disabled>
+                                <div class="form-group">
+                                    <label for="tbMotor1">Motor 1</label>
+                                    <input type="text" id="tbMotor1" class="form-control" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="tbMotor2">Motor 2</label>
+                                    <input type="text" id="tbMotor2" class="form-control" />
+                                </div>
+                            </fieldset>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -178,7 +199,7 @@
             ws = new WebSocket('ws://' + document.location.host + '/ws', ['esp32']);
             ws.binaryType = "arraybuffer";
             ws.onopen = function (e) {
-                requestYPR();
+                requestAll();
                 console.log("Connected");
             };
             ws.onclose = function (e) {
@@ -192,10 +213,33 @@
             ws.onmessage = function (e) {
                 if (e.data instanceof ArrayBuffer) {
                     var msg = "";
-                    if (lastCmd == 'YPR') {
-                        var YPR = new Float32Array(e.data);
-                        updateYPR(YPR);
-                        //console.log('Yaw: ' + YPR[0] + ', Pitch: ' + YPR[1] + ', Roll:' + YPR[2]);
+                    if (lastCmd) {
+                        switch (lastCmd) {
+                            case "YPR":
+                                {
+                                    var YPR = new Float32Array(e.data);
+                                    updateYPR(YPR);
+                                }
+                                break;
+                            case "ALL":
+                                {
+                                    var imuData = new Float32Array(e.data.slice(0, 24));
+                                    var YPR = new Float32Array(e.data.slice(24, 36));
+                                    var motorData = new Int32Array(e.data.slice(36, 44));
+                                    updateAll(imuData, YPR, motorData);
+                                }
+                                break;
+                            default:
+                                {
+                                    msg = "BIN:";
+                                    var bytes = new Uint8Array(e.data);
+                                    for (var i = 0; i < bytes.length; i++) {
+                                        msg += String.fromCharCode(bytes[i]);
+                                    }
+                                    console.log(msg);
+                                }
+                                break;
+                        }
                     }
                     else {
                         msg = "BIN:";
@@ -203,6 +247,7 @@
                         for (var i = 0; i < bytes.length; i++) {
                             msg += String.fromCharCode(bytes[i]);
                         }
+                        console.log(msg);
                     }
                 } else {
                     console.log("TXT:" + e.data);
@@ -516,6 +561,10 @@
             lastCmd = 'YPR';
             ws.send("YPR");
         }
+        function requestAll() {
+            lastCmd = 'ALL';
+            ws.send("ALL");
+        }
         function updateYPR(YPR) {
             cvs.width = cvs.offsetWidth;
             cvs.height = cvs.offsetHeight;
@@ -532,6 +581,34 @@
             $("#tbPitch").val(YPR[1]);
             $("#tbRoll").val(YPR[2]);
             setTimeout(requestYPR, 100);
+        }
+        function updateAll(imuData, YPR, motorData) {
+            cvs.width = cvs.offsetWidth;
+            cvs.height = cvs.offsetHeight;
+            var dx = cvs.width / 2;
+            var dy = cvs.height / 2;
+            
+            obj3D = create3DObj();
+            for (var i = 0; i < obj3D.length; i++) {
+                eulerRotate(obj3D[i].vertices, YPR[0], YPR[1], YPR[2]);
+            }
+            render(obj3D, ctx, dx, dy);
+
+            $("#tbYaw").val(YPR[0]);
+            $("#tbPitch").val(YPR[1]);
+            $("#tbRoll").val(YPR[2]);
+            
+            $("#tbGyroX").val(imuData[0]);
+            $("#tbGyroY").val(imuData[1]);
+            $("#tbGyroZ").val(imuData[2]);
+
+            $("#tbAccX").val(imuData[3]);
+            $("#tbAccY").val(imuData[4]);
+            $("#tbAccZ").val(imuData[5]);
+            
+            $("#tbMotor1").val(motorData[0]);
+            $("#tbMotor2").val(motorData[1]);
+            setTimeout(requestAll, 100);
         }
     </script>
 </body>

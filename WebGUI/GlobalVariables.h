@@ -6,9 +6,8 @@
 #define _GlobalVariables_H
 
 extern raw_imu_t rawData;
-extern imu_t imuData;
 extern DCM dcm;
-extern float YPR[3]; // Yaw Pitch Roll (degree)
+extern all_data_t allData;
 
 extern float accelMinMax[6];
 extern float gyroOffset[3];

@@ -22,8 +22,15 @@ typedef struct
 {
 	float gyro[3];
 	float accel[3];
-	float mag[3];
+	//float mag[3];
 } imu_t;
 
+typedef struct
+{
+	imu_t imuData;
+	float YPR[3];
+	long motor[2];
+	//float mag[3];
+} all_data_t;
 
 #endif

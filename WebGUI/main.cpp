@@ -17,11 +17,11 @@ void Loop_50Hz(uint32_t now) {
 }
 void Loop_4Hz(uint32_t now) {
 	Serial.print("YPR: ");
-	Serial.print(YPR[0]);
+	Serial.print(allData.YPR[0]);
 	Serial.print(", ");
-	Serial.print(YPR[1]);
+	Serial.print(allData.YPR[1]);
 	Serial.print(", ");
-	Serial.println(YPR[2]);
+	Serial.println(allData.YPR[2]);
 }
 
 

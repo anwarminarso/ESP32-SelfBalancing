@@ -18,6 +18,10 @@
 AsyncWebServer  server(80); // define web server port 80
 AsyncWebSocket ws("/ws");
 AsyncEventSource events("/events");
+#define BUFFER_SIZE 128
+static uint8_t wsBuffer[BUFFER_SIZE];
+static uint8_t wsBufferIndex;
+
 void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len) {
 	if (type == WS_EVT_CONNECT) {
 		Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
@@ -38,7 +42,7 @@ void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventT
 		String msg = "";
 		if (info->final && info->index == 0 && info->len == len) {
 			//the whole message is in a single frame and we got all of it's data
-			Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
+			//Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT) ? "text" : "binary", info->len);
 
 			if (info->opcode == WS_TEXT) {
 				for (size_t i = 0; i < info->len; i++) {
@@ -48,24 +52,31 @@ void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventT
 			else {
 				char buff[3];
 				for (size_t i = 0; i < info->len; i++) {
-					sprintf(buff, "%02x ", (uint8_t)data[i]);
+					//sprintf(buff, "%02x ", (uint8_t)data[i]);
 					msg += buff;
 				}
 			}
-			Serial.printf("%s\n", msg.c_str());
 			if (info->opcode == WS_TEXT) {
+				//Serial.printf("%s\n", msg.c_str());
 				if (msg == "YPR") {
-					client->binary((uint8_t*)&YPR, 12);
+					client->binary((uint8_t*)&allData.YPR, 12);
 				}
-				else if (msg = "GYRO") {
-					client->binary((uint8_t*)&imuData.gyro, 12);
+				else if (msg == "GYRO") {
+					client->binary((uint8_t*)&allData.imuData.gyro, 12);
 				}
-				else if (msg = "ACC") {
-					client->binary((uint8_t*)&imuData.accel, 12);
+				else if (msg == "ACC") {
+					client->binary((uint8_t*)&allData.imuData.accel, 12);
 				}
-				else if (msg = "MOT") {
-					long mot[2] = { M1Counter, M2Counter };
-					client->binary((uint8_t*)&mot, 8);
+				else if (msg == "MOT") {
+					allData.motor[0] = M1Counter;
+					allData.motor[1] = M2Counter;
+					client->binary((uint8_t*)&allData.motor, 8);
+				}
+				else if (msg == "ALL") {
+					allData.motor[0] = M1Counter;
+					allData.motor[1] = M2Counter;
+					client->binary((uint8_t*)&allData, 44);
+					wsBufferIndex = 0;
 				}
 				else {
 					client->text("I got your text message");
@@ -130,18 +141,18 @@ void registerServer() {
 	server.on("/api/ypr", HTTP_GET, [](AsyncWebServerRequest *request) {
 		DynamicJsonDocument doc(1024);
 		String jsonValue;
-		doc["yaw"] = YPR[0];
-		doc["pitch"] = YPR[1];
-		doc["roll"] = YPR[2];
+		doc["yaw"] = allData.YPR[0];
+		doc["pitch"] = allData.YPR[1];
+		doc["roll"] = allData.YPR[2];
 		serializeJson(doc, jsonValue);
 		request->send(200, "application/json", jsonValue);
 	});
 	server.on("/api/gyro", HTTP_GET, [](AsyncWebServerRequest *request) {
 		DynamicJsonDocument doc(1024);
 		String jsonValue;
-		doc["x"] = imuData.gyro[0];
-		doc["y"] = imuData.gyro[1];
-		doc["z"] = imuData.gyro[2];
+		doc["x"] = allData.imuData.gyro[0];
+		doc["y"] = allData.imuData.gyro[1];
+		doc["z"] = allData.imuData.gyro[2];
 		serializeJson(doc, jsonValue);
 		request->send(200, "application/json", jsonValue);
 	});
@@ -177,9 +188,9 @@ void registerServer() {
 	server.on("/api/acc", HTTP_GET, [](AsyncWebServerRequest *request) {
 		DynamicJsonDocument doc(1024);
 		String jsonValue;
-		doc["x"] = imuData.accel[0];
-		doc["y"] = imuData.accel[1];
-		doc["z"] = imuData.accel[2];
+		doc["x"] = allData.imuData.accel[0];
+		doc["y"] = allData.imuData.accel[1];
+		doc["z"] = allData.imuData.accel[2];
 		serializeJson(doc, jsonValue);
 		request->send(200, "application/json", jsonValue);
 	});
@@ -189,7 +200,7 @@ void initServer() {
 	Serial.begin(115200);
 	if (!SPIFFS.begin()) {
 		//Serial.println("An Error has occurred while mounting SPIFFS");
-		return;
+		return;*
 	}
 	WiFi.mode(WIFI_AP_STA);
 	WiFi.softAPdisconnect(true);
@@ -202,7 +213,7 @@ void initServer() {
 
 	WiFi.softAPsetHostname(hostName);
 	WiFi.softAPdisconnect(false);
-	WiFi.softAP(esp32SSID, esp32Password, 1, 0, 1);
+	WiFi.softAP(esp32SSID, esp32Password, 1, 0, 4);
 	MDNS.addService("http", "tcp", 80);
 	registerServer();
 
