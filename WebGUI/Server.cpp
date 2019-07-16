@@ -18,9 +18,6 @@
 AsyncWebServer  server(80); // define web server port 80
 AsyncWebSocket ws("/ws");
 AsyncEventSource events("/events");
-#define BUFFER_SIZE 128
-static uint8_t wsBuffer[BUFFER_SIZE];
-static uint8_t wsBufferIndex;
 
 void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len) {
 	if (type == WS_EVT_CONNECT) {
