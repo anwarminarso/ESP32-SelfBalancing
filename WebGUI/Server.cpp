@@ -15,6 +15,9 @@
 #define esp32SSID		"Self Balancing Robot"
 #define esp32Password	"@mikochu123"
 
+AsyncWebServer  server(80); // define web server port 80
+AsyncWebSocket ws("/ws");
+
 AsyncEventSource events("/events");
 
 void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len) {

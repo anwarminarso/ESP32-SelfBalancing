@@ -486,10 +486,6 @@
             var arrow = new Triangle(new Vertex(-135, 0, 0), tp1, tp2, 10);
             arrow.faceFillStyles = ['#C25', '#C25', '#C25', '#C25', '#EA0C25' ];
             eulerRotate(arrow.vertices, 0, 0, 90);
-            
-            eulerRotate(board.vertices, 90, 0, 0);
-            eulerRotate(neck.vertices, 90, 0, 0);
-            eulerRotate(arrow.vertices, 90, 0, 0);
 
             return [board, neck, arrow];
         }
