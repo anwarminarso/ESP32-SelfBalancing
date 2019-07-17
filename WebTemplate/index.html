@@ -417,6 +417,10 @@
             arrow.faceFillStyles = ['#C25', '#C25', '#C25', '#C25', '#EA0C25' ];
             eulerRotate(arrow.vertices, 0, 0, 90);
 
+            eulerRotate(board.vertices, 90, 0, 0);
+            eulerRotate(neck.vertices, 90, 0, 0);
+            eulerRotate(arrow.vertices, 90, 0, 0);
+
             baseBoard = copyObject(board);
             baseNeck = copyObject(neck);
             baseArrow = copyObject(arrow);
@@ -431,9 +435,9 @@
             var mx = 0;
             var my = 0;
 
-            //canvas.addEventListener('mousedown', initMove);
-            //document.addEventListener('mousemove', move);
-            //document.addEventListener('mouseup', stopMove);
+            canvas.addEventListener('mousedown', initMove);
+            document.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', stopMove);
 
             // Initialize the movement
             function initMove(evt) {
@@ -476,7 +480,6 @@
             //}
             //autorotate_timeout = setTimeout(autorotate, 2000);
 
-            ws = new WebSocket();
 
         });
     </script>

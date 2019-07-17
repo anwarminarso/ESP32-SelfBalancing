@@ -8,6 +8,7 @@
 extern raw_imu_t rawData;
 extern DCM dcm;
 extern all_data_t allData;
+extern stabilizer_t stabilizerPID;
 
 extern float accelMinMax[6];
 extern float gyroOffset[3];

@@ -15,8 +15,6 @@
 #define esp32SSID		"Self Balancing Robot"
 #define esp32Password	"@mikochu123"
 
-AsyncWebServer  server(80); // define web server port 80
-AsyncWebSocket ws("/ws");
 AsyncEventSource events("/events");
 
 void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len) {
@@ -73,7 +71,6 @@ void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventT
 					allData.motor[0] = M1Counter;
 					allData.motor[1] = M2Counter;
 					client->binary((uint8_t*)&allData, 44);
-					wsBufferIndex = 0;
 				}
 				else {
 					client->text("I got your text message");
@@ -156,9 +153,6 @@ void registerServer() {
 	server.on("/api/gyroOffset", HTTP_GET, [](AsyncWebServerRequest *request) {
 		DynamicJsonDocument doc(1024);
 		String jsonValue;
-		doc["x"] = gyroOffset[0];
-		doc["y"] = gyroOffset[1];
-		doc["z"] = gyroOffset[2];
 		serializeJson(doc, jsonValue);
 		request->send(200, "application/json", jsonValue);
 	});
@@ -191,13 +185,46 @@ void registerServer() {
 		serializeJson(doc, jsonValue);
 		request->send(200, "application/json", jsonValue);
 	});
+	server.on("/api/cal", HTTP_GET, [](AsyncWebServerRequest *request) {
+		DynamicJsonDocument doc(1024);
+		String jsonValue;
+		JsonObject  jsonGyro = doc.createNestedObject("gyro");
+		jsonGyro["x"] = gyroOffset[0];
+		jsonGyro["y"] = gyroOffset[1];
+		jsonGyro["z"] = gyroOffset[2];
+
+		JsonObject  jsonAcc = doc.createNestedObject("acc");
+		jsonAcc["xMin"] = accelMinMax[0];
+		jsonAcc["yMin"] = accelMinMax[1];
+		jsonAcc["zMin"] = accelMinMax[2];
+		jsonAcc["xMax"] = accelMinMax[3];
+		jsonAcc["yMax"] = accelMinMax[4];
+		jsonAcc["zMax"] = accelMinMax[5];
+
+		JsonObject jsonPID = doc.createNestedObject("pid");
+		JsonObject jsonYawPID = jsonPID.createNestedObject("yaw");
+		jsonYawPID["P"] = stabilizerPID.yaw[0];
+		jsonYawPID["I"] = stabilizerPID.yaw[1];
+		jsonYawPID["D"] = stabilizerPID.yaw[2];
+		JsonObject jsonPitchPID = jsonPID.createNestedObject("pitch");
+		jsonPitchPID["P"] = stabilizerPID.pitch[0];
+		jsonPitchPID["I"] = stabilizerPID.pitch[1];
+		jsonPitchPID["D"] = stabilizerPID.pitch[2];
+		JsonObject jsonRollPID = jsonPID.createNestedObject("roll");
+		jsonRollPID["P"] = stabilizerPID.roll[0];
+		jsonRollPID["I"] = stabilizerPID.roll[1];
+		jsonRollPID["D"] = stabilizerPID.roll[2];
+		
+		serializeJson(doc, jsonValue);
+		request->send(200, "application/json", jsonValue);
+	});
 }
 
 void initServer() {
 	Serial.begin(115200);
 	if (!SPIFFS.begin()) {
 		//Serial.println("An Error has occurred while mounting SPIFFS");
-		return;*
+		return;
 	}
 	WiFi.mode(WIFI_AP_STA);
 	WiFi.softAPdisconnect(true);

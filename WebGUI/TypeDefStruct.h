@@ -12,6 +12,12 @@ struct taskItem {
 	char itemName[8];
 };
 
+typedef struct {
+	uint8_t yaw[3];
+	uint8_t pitch[3];
+	uint8_t roll[3];
+} stabilizer_t;
+
 typedef struct
 {
 	int16_t gyro[3];

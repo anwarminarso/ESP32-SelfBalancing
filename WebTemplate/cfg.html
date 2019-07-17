@@ -28,7 +28,6 @@
 </head>
 
 <body>
-
     <!-- Fixed navbar -->
     <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">
@@ -226,102 +225,107 @@
 
 
     <script type="text/javascript">
+        var sliderYawP, sliderYawI, sliderYawD;
+        var sliderPitchP, sliderPitchI, sliderPitchD;
+        var sliderRollP, sliderRollI, sliderRollD;
+        var sliderGyOffsetX, sliderGyOffsetY, sliderGyOffsetZ;
+        var sliderAccelMinX, sliderAccelMinY, sliderAccelMinZ, sliderAccelMaxX, sliderAccelMaxY, sliderAccelMaxZ;
         $(function () {
-            $("#yawP").slider({
+            sliderYawP = new Slider('#yawP', {
                 step: 1,
                 min: 0,
                 max: 255
             });
-            $("#yawI").slider({
+            sliderYawI = new Slider('#yawI', {
                 step: 1,
                 min: 0,
                 max: 255
             });
-            $("#yawD").slider({
+            sliderYawD = new Slider('#yawD', {
                 step: 1,
                 min: 0,
                 max: 255
             });
-            
-            $("#pitchP").slider({
+            sliderPitchP = new Slider('#pitchP', {
                 step: 1,
                 min: 0,
                 max: 255
             });
-            $("#pitchI").slider({
+            sliderPitchI = new Slider('#pitchI', {
                 step: 1,
                 min: 0,
                 max: 255
             });
-            $("#pitchD").slider({
+            sliderPitchD = new Slider('#pitchD', {
                 step: 1,
                 min: 0,
                 max: 255
             });
-            
-            $("#rollP").slider({
+            sliderRollP = new Slider('#rollP', {
                 step: 1,
                 min: 0,
                 max: 255
             });
-            $("#rollI").slider({
+            sliderRollI = new Slider('#rollI', {
                 step: 1,
                 min: 0,
                 max: 255
             });
-            $("#rollD").slider({
+            sliderRollD = new Slider('#rollD', {
                 step: 1,
                 min: 0,
                 max: 255
             });
 
+            
+            sliderGyOffsetX = new Slider('#gyroOffsetX', {
+                step: 1,
+                min: -255,
+                max: 255
+            });
+            sliderGyOffsetY = new Slider('#gyroOffsetY', {
+                step: 1,
+                min: -255,
+                max: 255
+            });
+            sliderGyOffsetZ = new Slider('#gyroOffsetZ', {
+                step: 1,
+                min: -255,
+                max: 255
+            });
+            
+            
+            sliderAccelMinX = new Slider('#accelMinX', {
+                step: 1,
+                min: -10000,
+                max: 0,
+                reversed : true
+            });
+            sliderAccelMinY = new Slider('#accelMinY', {
+                step: 1,
+                min: -10000,
+                max: 0,
+                reversed : true
+            });
+            sliderAccelMinZ = new Slider('#accelMinZ', {
+                step: 1,
+                min: -10000,
+                max: 0,
+                reversed : true
+            });
 
             
-            $("#gyroOffsetX").slider({
-                step: 1,
-                min: -255,
-                max: 255
-            });
-            $("#gyroOffsetY").slider({
-                step: 1,
-                min: -255,
-                max: 255
-            });
-            $("#gyroOffsetZ").slider({
-                step: 1,
-                min: -255,
-                max: 255
-            });
-            $("#accelMinX").slider({
-                step: 1,
-                min: -10000,
-                max: 0,
-                reversed : true
-            });
-            $("#accelMinY").slider({
-                step: 1,
-                min: -10000,
-                max: 0,
-                reversed : true
-            });
-            $("#accelMinZ").slider({
-                step: 1,
-                min: -10000,
-                max: 0,
-                reversed : true
-            });
-            
-            $("#accelMaxX").slider({
+            sliderAccelMaxX = new Slider('#accelMaxX', {
                 step: 1,
                 min: 0,
                 max: 10000
             });
-            $("#accelMaxY").slider({
+            sliderAccelMaxY = new Slider('#accelMaxY', {
                 step: 1,
                 min: 0,
                 max: 10000
             });
-            $("#accelMaxZ").slider({
+            sliderAccelMaxZ = new Slider('#accelMaxZ', {
                 step: 1,
                 min: 0,
                 max: 10000

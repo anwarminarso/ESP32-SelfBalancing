@@ -1,6 +1,7 @@
 #include "GlobalVariables.h"
 #include "Sensor.h"
 #include "Server.h"
+#include "Stabilizer.h"
 #include "Task.h"
 
 void instanceTask() {
@@ -28,6 +29,7 @@ void Loop_4Hz(uint32_t now) {
 void setup() {
 	initSensor();
 	initServer();
+	initStabilizer();
 
 	setInstanceTask(instanceTask);
 	setEndTask(endTask);
