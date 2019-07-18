@@ -7,6 +7,7 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
+#include "Configuration.h"
 
 #define hostName       "SelfBalancingRobot"
 #define localSsid      "V1RU$"       // My Local WiFi SSID
@@ -124,79 +125,79 @@ void registerServer() {
 	server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html").setCacheControl("max-age=600");
 	// API
 	server.on("/api/info", HTTP_GET, [](AsyncWebServerRequest *request) {
-		DynamicJsonDocument doc(1024);
-		String jsonValue;
-		doc["ChipRevision"] = String(ESP.getChipRevision());
-		doc["CpuFreqMHz"] = String(ESP.getCpuFreqMHz());
-		doc["SketchMD5"] = String(ESP.getSketchMD5());
-		doc["SketchSize"] = String(ESP.getSketchSize());
-		doc["CycleCount"] = String(ESP.getCycleCount());
-		doc["SdkVersion"] = String(ESP.getSdkVersion());
-		serializeJson(doc, jsonValue);
-		request->send(200, "application/json", jsonValue);
+		DynamicJsonDocument resultDoc(1024);
+		String resultJsonValue;
+		resultDoc["ChipRevision"] = String(ESP.getChipRevision());
+		resultDoc["CpuFreqMHz"] = String(ESP.getCpuFreqMHz());
+		resultDoc["SketchMD5"] = String(ESP.getSketchMD5());
+		resultDoc["SketchSize"] = String(ESP.getSketchSize());
+		resultDoc["CycleCount"] = String(ESP.getCycleCount());
+		resultDoc["SdkVersion"] = String(ESP.getSdkVersion());
+		serializeJson(resultDoc, resultJsonValue);
+		request->send(200, "application/json", resultJsonValue);
 	});
 	server.on("/api/ypr", HTTP_GET, [](AsyncWebServerRequest *request) {
-		DynamicJsonDocument doc(1024);
-		String jsonValue;
-		doc["yaw"] = allData.YPR[0];
-		doc["pitch"] = allData.YPR[1];
-		doc["roll"] = allData.YPR[2];
-		serializeJson(doc, jsonValue);
-		request->send(200, "application/json", jsonValue);
+		DynamicJsonDocument resultDoc(1024);
+		String resultJsonValue;
+		resultDoc["yaw"] = allData.YPR[0];
+		resultDoc["pitch"] = allData.YPR[1];
+		resultDoc["roll"] = allData.YPR[2];
+		serializeJson(resultDoc, resultJsonValue);
+		request->send(200, "application/json", resultJsonValue);
 	});
 	server.on("/api/gyro", HTTP_GET, [](AsyncWebServerRequest *request) {
-		DynamicJsonDocument doc(1024);
-		String jsonValue;
-		doc["x"] = allData.imuData.gyro[0];
-		doc["y"] = allData.imuData.gyro[1];
-		doc["z"] = allData.imuData.gyro[2];
-		serializeJson(doc, jsonValue);
-		request->send(200, "application/json", jsonValue);
+		DynamicJsonDocument resultDoc(1024);
+		String resultJsonValue;
+		resultDoc["x"] = allData.imuData.gyro[0];
+		resultDoc["y"] = allData.imuData.gyro[1];
+		resultDoc["z"] = allData.imuData.gyro[2];
+		serializeJson(resultDoc, resultJsonValue);
+		request->send(200, "application/json", resultJsonValue);
 	});
 	server.on("/api/gyroOffset", HTTP_GET, [](AsyncWebServerRequest *request) {
-		DynamicJsonDocument doc(1024);
-		String jsonValue;
-		serializeJson(doc, jsonValue);
-		request->send(200, "application/json", jsonValue);
+		DynamicJsonDocument resultDoc(1024);
+		String resultJsonValue;
+		serializeJson(resultDoc, resultJsonValue);
+		request->send(200, "application/json", resultJsonValue);
 	});
 	server.on("/api/accMinMax", HTTP_GET, [](AsyncWebServerRequest *request) {
-		DynamicJsonDocument doc(1024);
-		String jsonValue;
-		doc["xMin"] = accelMinMax[0];
-		doc["yMin"] = accelMinMax[1];
-		doc["zMin"] = accelMinMax[2];
-		doc["xMax"] = accelMinMax[3];
-		doc["yMax"] = accelMinMax[4];
-		doc["zMax"] = accelMinMax[5];
-		serializeJson(doc, jsonValue);
-		request->send(200, "application/json", jsonValue);
+		DynamicJsonDocument resultDoc(1024);
+		String resultJsonValue;
+		resultDoc["xMin"] = accelMinMax[0];
+		resultDoc["yMin"] = accelMinMax[1];
+		resultDoc["zMin"] = accelMinMax[2];
+		resultDoc["xMax"] = accelMinMax[3];
+		resultDoc["yMax"] = accelMinMax[4];
+		resultDoc["zMax"] = accelMinMax[5];
+		serializeJson(resultDoc, resultJsonValue);
+		request->send(200, "application/json", resultJsonValue);
 	});
 	server.on("/api/motor", HTTP_GET, [](AsyncWebServerRequest *request) {
-		DynamicJsonDocument doc(1024);
-		String jsonValue;
-		doc["M1"] = M1Counter;
-		doc["M2"] = M2Counter;
-		serializeJson(doc, jsonValue);
-		request->send(200, "application/json", jsonValue);
+		DynamicJsonDocument resultDoc(1024);
+		String resultJsonValue;
+		resultDoc["M1"] = M1Counter;
+		resultDoc["M2"] = M2Counter;
+		serializeJson(resultDoc, resultJsonValue);
+		request->send(200, "application/json", resultJsonValue);
 	});
 	server.on("/api/acc", HTTP_GET, [](AsyncWebServerRequest *request) {
-		DynamicJsonDocument doc(1024);
-		String jsonValue;
-		doc["x"] = allData.imuData.accel[0];
-		doc["y"] = allData.imuData.accel[1];
-		doc["z"] = allData.imuData.accel[2];
-		serializeJson(doc, jsonValue);
-		request->send(200, "application/json", jsonValue);
+		DynamicJsonDocument resultDoc(1024);
+		String resultJsonValue;
+		resultDoc["x"] = allData.imuData.accel[0];
+		resultDoc["y"] = allData.imuData.accel[1];
+		resultDoc["z"] = allData.imuData.accel[2];
+		serializeJson(resultDoc, resultJsonValue);
+		request->send(200, "application/json", resultJsonValue);
 	});
 	server.on("/api/cal", HTTP_GET, [](AsyncWebServerRequest *request) {
-		DynamicJsonDocument doc(1024);
-		String jsonValue;
-		JsonObject  jsonGyro = doc.createNestedObject("gyro");
+		DynamicJsonDocument resultDoc(1024);
+		String resultJsonValue;
+		JsonObject  jsonGyro = resultDoc.createNestedObject("gyro");
 		jsonGyro["x"] = gyroOffset[0];
 		jsonGyro["y"] = gyroOffset[1];
 		jsonGyro["z"] = gyroOffset[2];
 
-		JsonObject  jsonAcc = doc.createNestedObject("acc");
+		JsonObject  jsonAcc = resultDoc.createNestedObject("acc");
 		jsonAcc["xMin"] = accelMinMax[0];
 		jsonAcc["yMin"] = accelMinMax[1];
 		jsonAcc["zMin"] = accelMinMax[2];
@@ -204,7 +205,7 @@ void registerServer() {
 		jsonAcc["yMax"] = accelMinMax[4];
 		jsonAcc["zMax"] = accelMinMax[5];
 
-		JsonObject jsonPID = doc.createNestedObject("pid");
+		JsonObject jsonPID = resultDoc.createNestedObject("pid");
 		JsonObject jsonYawPID = jsonPID.createNestedObject("yaw");
 		jsonYawPID["P"] = stabilizerPID.yaw[0];
 		jsonYawPID["I"] = stabilizerPID.yaw[1];
@@ -217,14 +218,134 @@ void registerServer() {
 		jsonRollPID["P"] = stabilizerPID.roll[0];
 		jsonRollPID["I"] = stabilizerPID.roll[1];
 		jsonRollPID["D"] = stabilizerPID.roll[2];
-		
-		serializeJson(doc, jsonValue);
-		request->send(200, "application/json", jsonValue);
+
+		serializeJson(resultDoc, resultJsonValue);
+		request->send(200, "application/json", resultJsonValue);
+	});
+	server.on("/api/savePID", HTTP_POST, [](AsyncWebServerRequest *request) {
+		DynamicJsonDocument resultDoc(1024);
+		String resultJsonValue;
+		if (request->hasParam("pid", true)) {
+			String msg = request->getParam("pid", true)->value();
+			Serial.println(msg);
+			DynamicJsonDocument postDoc(1024);
+			DeserializationError err = deserializeJson(postDoc, msg);
+			if (err != DeserializationError::Ok) {
+				resultDoc["success"] = false;
+				resultDoc["error"] = "error deserialize Json";
+			}
+			else {
+				stabilizerPID.yaw[0] = postDoc["yaw"]["P"];
+				stabilizerPID.yaw[1] = postDoc["yaw"]["I"];
+				stabilizerPID.yaw[2] = postDoc["yaw"]["D"];
+				stabilizerPID.pitch[0] = postDoc["pitch"]["P"];
+				stabilizerPID.pitch[1] = postDoc["pitch"]["I"];
+				stabilizerPID.pitch[2] = postDoc["pitch"]["D"];
+				stabilizerPID.roll[0] = postDoc["roll"]["P"];
+				stabilizerPID.roll[1] = postDoc["roll"]["I"];
+				stabilizerPID.roll[2] = postDoc["roll"]["D"];
+
+				Serial.println("PID Saved");
+				resultDoc["success"] = true;
+				saveConfig();
+			}
+		}
+		else {
+			resultDoc["success"] = false;
+			resultDoc["error"] = "No Data";
+		}
+		serializeJson(resultDoc, resultJsonValue);
+		request->send(200, "application/json", resultJsonValue);
+	});
+	server.on("/api/saveGyroOffset", HTTP_POST, [](AsyncWebServerRequest *request) {
+		DynamicJsonDocument resultDoc(1024);
+		String resultJsonValue;
+		if (request->hasParam("gyroOffset", true)) {
+			String msg = request->getParam("gyroOffset", true)->value();
+			Serial.println(msg);
+			DynamicJsonDocument postDoc(1024);
+			DeserializationError err = deserializeJson(postDoc, msg);
+			if (err != DeserializationError::Ok) {
+				resultDoc["success"] = false;
+				resultDoc["error"] = "error deserialize Json";
+			}
+			else {
+				gyroOffset[0] = postDoc["x"];
+				gyroOffset[1] = postDoc["y"];
+				gyroOffset[2] = postDoc["z"];
+
+				Serial.println("Gyro Offset Saved");
+				resultDoc["success"] = true;
+				saveConfig();
+			}
+		}
+		else {
+			resultDoc["success"] = false;
+			resultDoc["error"] = "No Data";
+		}
+		serializeJson(resultDoc, resultJsonValue);
+		request->send(200, "application/json", resultJsonValue);
+	});
+	server.on("/api/saveAccMinMax", HTTP_POST, [](AsyncWebServerRequest *request) {
+		DynamicJsonDocument resultDoc(1024);
+		String resultJsonValue;
+		if (request->hasParam("accMinMax", true)) {
+			String msg = request->getParam("accMinMax", true)->value();
+			Serial.println(msg);
+			DynamicJsonDocument postDoc(1024);
+			DeserializationError err = deserializeJson(postDoc, msg);
+			if (err != DeserializationError::Ok) {
+				resultDoc["success"] = false;
+				resultDoc["error"] = "error deserialize Json";
+			}
+			else {
+				accelMinMax[0] = postDoc["min"]["x"];
+				accelMinMax[1] = postDoc["min"]["y"];
+				accelMinMax[2] = postDoc["min"]["z"];
+				accelMinMax[3] = postDoc["max"]["x"];
+				accelMinMax[4] = postDoc["max"]["y"];
+				accelMinMax[5] = postDoc["max"]["z"];
+
+				Serial.println("Acc Min Max Saved");
+				resultDoc["success"] = true;
+				saveConfig();
+			}
+		}
+		else {
+			resultDoc["success"] = false;
+			resultDoc["error"] = "No Data";
+		}
+		serializeJson(resultDoc, resultJsonValue);
+		request->send(200, "application/json", resultJsonValue);
+	});
+	server.on("/api/resetCfg", HTTP_POST, [](AsyncWebServerRequest *request) {
+		DynamicJsonDocument resultDoc(1024);
+		String resultJsonValue;
+		resetConfig();
+		resultDoc["success"] = true;
+		serializeJson(resultDoc, resultJsonValue);
+		request->send(200, "application/json", resultJsonValue);
+		ESP.restart();
+	});
+	server.on("/api/reloadCfg", HTTP_POST, [](AsyncWebServerRequest *request) {
+		DynamicJsonDocument resultDoc(1024);
+		String resultJsonValue;
+		loadConfig();
+		resultDoc["success"] = true;
+		serializeJson(resultDoc, resultJsonValue);
+		request->send(200, "application/json", resultJsonValue);
+	});
+	server.on("/api/restart", HTTP_POST, [](AsyncWebServerRequest *request) {
+		DynamicJsonDocument resultDoc(1024);
+		String resultJsonValue;
+		resultDoc["success"] = true;
+		serializeJson(resultDoc, resultJsonValue);
+		request->send(200, "application/json", resultJsonValue);
+		ESP.restart();
 	});
 }
 
 void initServer() {
-	Serial.begin(115200);
 	if (!SPIFFS.begin()) {
 		//Serial.println("An Error has occurred while mounting SPIFFS");
 		return;

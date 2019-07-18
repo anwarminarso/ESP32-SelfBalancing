@@ -128,7 +128,11 @@
                         </div>
                     </div>
                 </div>
-
+            </div>
+            <div class="row">
+                <div class="col-sm-12 text-right">
+                    <button type="button" class="btn btn-primary" onclick="SavePID()">Save</button>
+                </div>
             </div>
         </form>
         
@@ -157,6 +161,11 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12 text-right">
+                    <button type="button" class="btn btn-primary">Save</button>
                 </div>
             </div>
         </form>
@@ -210,6 +219,11 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-sm-12 text-right">
+                    <button type="button" class="btn btn-primary">Save</button>
+                </div>
+            </div>
         </form>
     </div>
 
@@ -230,6 +244,29 @@
         var sliderRollP, sliderRollI, sliderRollD;
         var sliderGyOffsetX, sliderGyOffsetY, sliderGyOffsetZ;
         var sliderAccelMinX, sliderAccelMinY, sliderAccelMinZ, sliderAccelMaxX, sliderAccelMaxY, sliderAccelMaxZ;
+
+        function SavePID() {
+            var data = {
+                yaw: {
+                    P: sliderYawP.getValue(),
+                    I: sliderYawI.getValue(),
+                    D: sliderYawD.getValue()
+                },
+                pitch: {
+                    P: sliderPitchP.getValue(),
+                    I: sliderPitchI.getValue(),
+                    D: sliderPitchD.getValue()
+                },
+                roll: {
+                    P: sliderRollP.getValue(),
+                    I: sliderRollI.getValue(),
+                    D: sliderRollD.getValue()
+                }
+            };
+            $.post('/api/savePID', data, function (response) {
+
+            })
+        }
         $(function () {
             sliderYawP = new Slider('#yawP', {
                 step: 1,
@@ -330,6 +367,7 @@
                 min: 0,
                 max: 10000
             });
+            
         });
     </script>
 

@@ -3,6 +3,7 @@
 #include "Server.h"
 #include "Stabilizer.h"
 #include "Task.h"
+#include "Configuration.h"
 
 void instanceTask() {
 }
@@ -27,6 +28,9 @@ void Loop_4Hz(uint32_t now) {
 
 
 void setup() {
+	Serial.begin(115200);
+
+	loadConfig();
 	initSensor();
 	initServer();
 	initStabilizer();

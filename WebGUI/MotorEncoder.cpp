@@ -18,10 +18,10 @@ void IRAM_ATTR M1_YellowEncoder() {
 }
 void IRAM_ATTR M2_YellowEncoder() {
 	if (digitalRead(GreenEncoderM2) == HIGH) {
-		M2Counter += 1;
+		M2Counter -= 1;
 	}
 	else {
-		M2Counter -= 1;
+		M2Counter += 1;
 	}
 }
 void initMotorEncoder() {

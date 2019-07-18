@@ -7,7 +7,7 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
     <meta name="author" content="">
-    
+
     <title>ESP32 Self Balancing Robot</title>
 
     <!-- Bootstrap core CSS -->
@@ -51,7 +51,7 @@
         </div>
     </nav>
 
-    
+
     <div class="jumbotron">
         <div class="container">
             <!--<h1 class="display-3">Welcome,</h1>
@@ -88,7 +88,7 @@
                     </div>
                 </div>
                 <div class="col-sm-4">
-                   <div class="panel panel-info">
+                    <div class="panel panel-info">
                         <div class="panel-heading">
                             <h3 class="panel-title">Pitch</h3>
                         </div>
@@ -109,7 +109,7 @@
                     </div>
                 </div>
                 <div class="col-sm-4">
-                   <div class="panel panel-danger">
+                    <div class="panel panel-danger">
                         <div class="panel-heading">
                             <h3 class="panel-title">Roll</h3>
                         </div>
@@ -131,8 +131,13 @@
                 </div>
 
             </div>
+            <div class="row">
+                <div class="col-sm-12 text-right">
+                    <button type="button" class="btn btn-primary" onclick="SavePID()">Save</button>
+                </div>
+            </div>
         </form>
-        
+
         <div class="page-header">
             <h1>Gyroscope</h1>
         </div>
@@ -160,9 +165,14 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-sm-12 text-right">
+                    <button type="button" class="btn btn-primary" onclick="SaveGyroOffset()">Save</button>
+                </div>
+            </div>
         </form>
 
-        
+
         <div class="page-header">
             <h1>Accelerometer</h1>
         </div>
@@ -211,6 +221,11 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-sm-12 text-right">
+                    <button type="button" class="btn btn-primary" onclick="SaveAccMinMax()">Save</button>
+                </div>
+            </div>
         </form>
     </div>
 
@@ -230,7 +245,85 @@
         var sliderRollP, sliderRollI, sliderRollD;
         var sliderGyOffsetX, sliderGyOffsetY, sliderGyOffsetZ;
         var sliderAccelMinX, sliderAccelMinY, sliderAccelMinZ, sliderAccelMaxX, sliderAccelMaxY, sliderAccelMaxZ;
-
+        function SavePID() {
+            var data = {
+                yaw: {
+                    P: sliderYawP.getValue(),
+                    I: sliderYawI.getValue(),
+                    D: sliderYawD.getValue()
+                },
+                pitch: {
+                    P: sliderPitchP.getValue(),
+                    I: sliderPitchI.getValue(),
+                    D: sliderPitchD.getValue()
+                },
+                roll: {
+                    P: sliderRollP.getValue(),
+                    I: sliderRollI.getValue(),
+                    D: sliderRollD.getValue()
+                }
+            };
+            $.post('/api/savePID', { pid: JSON.stringify(data) }, function (response) {
+                if (response && response.success) {
+                    alert("PID Saved");
+                }
+                else {
+                    if (response && response.error) {
+                        alert("Error : " + response.error);
+                    }
+                    else {
+                        alert("Unknown Error");
+                    }
+                }
+            })
+        }
+        function SaveGyroOffset() {
+            var data = {
+                x: sliderGyOffsetX.getValue(),
+                y: sliderGyOffsetY.getValue(),
+                z: sliderGyOffsetZ.getValue()
+            };
+            $.post('/api/saveGyroOffset', { gyroOffset: JSON.stringify(data) }, function (response) {
+                if (response && response.success) {
+                    alert("Gyro Offset Saved");
+                }
+                else {
+                    if (response && response.error) {
+                        alert("Error : " + response.error);
+                    }
+                    else {
+                        alert("Unknown Error");
+                    }
+                }
+            })
+        }
+        function SaveAccMinMax() {
+            var data = {
+                min: {
+                    x: sliderAccelMinX.getValue(),
+                    y: sliderAccelMinY.getValue(),
+                    z: sliderAccelMinZ.getValue()
+                },
+                max: {
+                    x: sliderAccelMaxX.getValue(),
+                    y: sliderAccelMaxY.getValue(),
+                    z: sliderAccelMaxZ.getValue()
+                }
+            };
+            $.post('/api/saveAccMinMax', { accMinMax: JSON.stringify(data) }, function (response) {
+                if (response && response.success) {
+                    alert("Acc Min Max Saved");
+                }
+                else {
+                    if (response && response.error) {
+                        alert("Error : " + response.error);
+                    }
+                    else {
+                        alert("Unknown Error");
+                    }
+                }
+            })
+        }
         function updateData() {
             var tm = new Date().getTime();
             $.get("/api/cal?t=" + tm, function (data) {
@@ -252,7 +345,7 @@
                     sliderAccelMinX.setValue(data.acc.xMin);
                     sliderAccelMinY.setValue(data.acc.yMin);
                     sliderAccelMinZ.setValue(data.acc.zMin);
-                    
+
                     sliderAccelMaxX.setValue(data.acc.xMax);
                     sliderAccelMaxY.setValue(data.acc.yMax);
                     sliderAccelMaxZ.setValue(data.acc.zMax);
@@ -306,7 +399,7 @@
                 max: 255
             });
 
-            
+
             sliderGyOffsetX = new Slider('#gyroOffsetX', {
                 step: 1,
                 min: -255,
@@ -322,28 +415,28 @@
                 min: -255,
                 max: 255
             });
-            
-            
+
+
             sliderAccelMinX = new Slider('#accelMinX', {
                 step: 1,
                 min: -10000,
                 max: 0,
-                reversed : true
+                reversed: true
             });
             sliderAccelMinY = new Slider('#accelMinY', {
                 step: 1,
                 min: -10000,
                 max: 0,
-                reversed : true
+                reversed: true
             });
             sliderAccelMinZ = new Slider('#accelMinZ', {
                 step: 1,
                 min: -10000,
                 max: 0,
-                reversed : true
+                reversed: true
             });
 
-            
+
             sliderAccelMaxX = new Slider('#accelMaxX', {
                 step: 1,
                 min: 0,
