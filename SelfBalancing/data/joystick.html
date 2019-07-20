@@ -1,0 +1,54 @@
+﻿<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <title>Joystick</title>
+    <style>
+        body {
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+            background-color: #BBB;
+        }
+
+        #container {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <script src="virtualjoystick.min.js"></script>
+    <script>
+        var intv;
+        var joystick = new VirtualJoystick({
+            container: document.getElementById('container'),
+            mouseSupport: true,
+            limitStickTravel: true,
+            stickRadius: 100
+        });
+
+        function updateJoy() {
+            try {
+                parent.UpdateJoystick(joystick.deltaX(), joystick.deltaY());
+            } catch (e) {
+                clearInterval(intv);
+            }
+        }
+        if (parent && parent.window && parent.window.location) {
+            var parentPath = parent.window.location.pathname;
+            parentPath = parentPath.toLowerCase();
+            if (parentPath.indexOf("/control.html") == 0) {
+                intv = setInterval(updateJoy, 1 / 30 * 1000);
+            }
+        }
+
+    </script>
+</body>
+</html>
