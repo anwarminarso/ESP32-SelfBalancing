@@ -1,0 +1,176 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>ESP32 Self Balancing Robot</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap theme -->
+    <link href="bootstrap-theme.min.css" rel="stylesheet" />
+    <link href="docs.min.css" rel="stylesheet" />
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <link href="ie10-viewport-bug.css" rel="stylesheet" />
+
+    <link href="bootstrap-slider.min.css" rel="stylesheet" />
+
+    <!-- Custom styles for this template -->
+    <link href="theme.css" rel="stylesheet">
+    <script src="ie-emulation-modes.js"></script>
+    <link href="jumbotron.css" rel="stylesheet" />
+    <link href="bootstrap-toggle.min.css" rel="stylesheet" />
+
+    <style type="text/css">
+        iframe {
+            width: 100%;
+            min-height: 300px;
+            border: none;
+        }
+        .toggle-group {
+
+        }
+    </style>
+</head>
+
+<body>
+   <!-- <canvas id="joystickBody" width="126" height="126" class="position-absolute" style="display: none;"></canvas>
+    <canvas id="joystickStick" width="86" height="86" class="position-absolute" style="display: none;"></canvas>-->
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">ESP32 Self Balancing Robot</a>
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="/index.html">Dashboard</a></li>
+                    <li><a href="/cfg.html">Configuration</a></li>
+                    <li class="active"><a href="#">Control</a></li>
+                    <li><a href="javascript: toggleStabilizer()">ON / OFF</a></li>
+                </ul>
+            </div>
+            <!--/.nav-collapse -->
+        </div>
+    </nav>
+
+
+    <div class="jumbotron">
+        <div class="container">
+            <!--<h1 class="display-3">Welcome,</h1>
+            <p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p>-->
+        </div>
+    </div>
+
+    <div class="container theme-showcase" role="main">
+        <div class="page-header">
+            <h1>Control</h1>
+        </div>
+        <form>
+            <div class="row">
+                <div class="col-sm-8">
+                    <div class="panel panel-success">
+                        <div class="panel-heading">
+                            <h3 class="panel-title pull-left">Joystick</h3>
+                            <div class=" panel-title pull-right">
+                                <input id="cbCtrlEnable" type="checkbox" data-toggle="toggle" data-off="Disabled" data-on="Enabled" />
+                            </div>
+                             <div class="clearfix"></div>
+                        </div>
+                        <div class="panel-body">
+                            <iframe id="frmJoy"></iframe>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="panel panel-success">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Data</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <label for="cbArm">Status</label><br />
+                                <input id="cbArm" type="checkbox" data-toggle="toggle" data-off="Disarmed" data-on="Armed" data-onstyle="danger" data-offstyle="success" />
+                            </div>
+                            <fieldset disabled>
+                                <div class="form-group">
+                                    <label for="tbFWD">FWD / REV</label>
+                                    <input type="text" id="tbFWD" class="form-control" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="tbLFTRGT">LFT / RGT</label>
+                                    <input type="text" id="tbLFTRGT" class="form-control" />
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="jquery-3.4.1.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <script src="docs.min.js"></script>
+    <script src="ie10-viewport-bug.js"></script>
+    <script src="bootstrap-toggle.min.js"></script>
+    <script type="text/javascript">
+        var joyX = 0.0;
+        var joyY = 0.0;
+        function toggleStabilizer() {
+            $.post('/api/toggleStabilizer', function (response) {
+                if (response && response.success) {
+                    alert(response.state);
+                }
+                else {
+                    if (response && response.error) {
+                        alert("Error : " + response.error);
+                    }
+                    else {
+                        alert("Unknown Error");
+                    }
+                }
+            })
+        }
+        
+        function UpdateJoystick(x, y) {
+            if ($("#cbCtrlEnable").prop('checked')) {
+                joyX = x;
+                joyY = y;
+            }
+            else {
+                joyX = 0.0;
+                joyY = 0.0;
+            }
+            $('#tbLFTRGT').val(joyX);
+            $('#tbFWD').val(joyY);
+
+        }
+        function onCbArmChanged() {
+            alert($("#cbArm").prop('checked'));
+        }
+        $(function () {
+            $("#frmJoy").attr("src", "/joystick.html");
+            $('#cbArm').change(onCbArmChanged);
+        });
+    </script>
+
+</body>
+</html>
