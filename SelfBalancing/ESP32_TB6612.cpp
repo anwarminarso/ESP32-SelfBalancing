@@ -13,7 +13,7 @@ Motor::Motor(int Channel, int In1pin, int In2pin, int PWMpin, int offset, int ST
 	pinMode(In2, OUTPUT);
 	pinMode(Standby, OUTPUT);
 
-	ledcSetup(MCh, 1000, 12);
+	ledcSetup(MCh, 500, 12);
 	ledcAttachPin(PWM, MCh);
 }
 

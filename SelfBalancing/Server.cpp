@@ -21,7 +21,6 @@ rc_cmd_t rcCmd;
 AsyncWebServer  server(80); // define web server port 80
 AsyncWebSocket ws("/ws");
 
-//AsyncEventSource events("/events");
 
 void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len) {
 	if (type == WS_EVT_CONNECT) {
@@ -353,7 +352,6 @@ void registerServer() {
 
 void initServer() {
 	if (!SPIFFS.begin()) {
-		//Serial.println("An Error has occurred while mounting SPIFFS");
 		return;
 	}
 	WiFi.mode(WIFI_AP_STA);
@@ -374,9 +372,6 @@ void initServer() {
 	ws.onEvent(onWsEvent);
 	server.addHandler(&ws);
 
-	//events.onConnect([](AsyncEventSourceClient *client) {
-	//	client->send("hello!", NULL, millis(), 1000);
-	//});
 	server.begin();
 
 }

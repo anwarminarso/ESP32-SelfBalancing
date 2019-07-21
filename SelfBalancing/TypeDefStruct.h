@@ -13,6 +13,7 @@ struct taskItem {
 };
 
 typedef struct {
+	// [0] => P, [1] => I, [2] => D
 	float yaw[3];
 	float pitch[3];
 	float angle[3];
