@@ -27,7 +27,7 @@
 #define MSG_SET_CAL_PID				44
 
 #define MSG_STABILZE_STATE			51
-#define MSG_TOGGLE_STABILZE_STATE	52
+#define MSG_SET_STABILZE_STATE		52
 
 
 #define MSG_SET_RC					101

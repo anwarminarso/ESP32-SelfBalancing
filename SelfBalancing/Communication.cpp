@@ -75,13 +75,13 @@ void executeCommunication(AsyncWebSocketClient * client, uint8_t *data, size_t l
 		case MSG_STABILZE_STATE:
 			sendSerializeObject(client, msgCode, (uint8_t*)&stabilzerOn, 1);
 			break;
-		case MSG_TOGGLE_STABILZE_STATE:
+		case MSG_SET_STABILZE_STATE:
 			{
 				uint8_t val;
 				setDeserializeObject(data, (uint8_t*)&val, 1);
-				stabilzerOn = val == 1;
-				if (stabilzerOn)
+				if (val == 1 && !stabilzerOn)
 					resetSensor();
+				stabilzerOn = val == 1;
 			}
 			break;
 		case MSG_SET_RC:
