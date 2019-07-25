@@ -127,6 +127,10 @@ void registerServer() {
 		resultDoc["SketchSize"] = String(ESP.getSketchSize());
 		resultDoc["CycleCount"] = String(ESP.getCycleCount());
 		resultDoc["SdkVersion"] = String(ESP.getSdkVersion());
+		resultDoc["HeapSize"] = String(ESP.getHeapSize());
+		resultDoc["FreeHeap"] = String(ESP.getFreeHeap());
+		resultDoc["FreePsram"] = String(ESP.getFreePsram());
+		resultDoc["FreeSketchSpace"] = String(ESP.getFreeSketchSpace());
 		serializeJson(resultDoc, resultJsonValue);
 		request->send(200, "application/json", resultJsonValue);
 	});

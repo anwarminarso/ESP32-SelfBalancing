@@ -183,9 +183,9 @@ void executeStabilizer(uint32_t now) {
 	//Serial.print(", Yaw  PID: ");
 	//Serial.println(axisPID[2]);
 
+	//Serial.print("M1: ");
+	//Serial.print(MotorPWM[0]);
+	//Serial.print(", M2: ");
+	//Serial.println(MotorPWM[1]);
 
-	/*Serial.print("M1: ");
-	Serial.print(m1Val);
-	Serial.print(", M2: ");
-	Serial.println(m2Val);*/
 }
