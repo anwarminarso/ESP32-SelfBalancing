@@ -352,6 +352,13 @@ void registerServer() {
 		serializeJson(resultDoc, resultJsonValue);
 		request->send(200, "application/json", resultJsonValue);
 	});
+
+
+
+	ws.onEvent(onWsEvent);
+	server.addHandler(&ws);
+
+	server.begin();
 }
 
 void initServer() {
@@ -372,10 +379,5 @@ void initServer() {
 	WiFi.softAP(esp32SSID, esp32Password, 1, 0, 4);
 	MDNS.addService("http", "tcp", 80);
 	registerServer();
-
-	ws.onEvent(onWsEvent);
-	server.addHandler(&ws);
-
-	server.begin();
 
 }
