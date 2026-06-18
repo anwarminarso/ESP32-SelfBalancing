@@ -25,6 +25,8 @@ void setDeserializeObject(uint8_t *source, uint8_t *target, size_t len) {
 }
 
 void executeCommunication(AsyncWebSocketClient * client, uint8_t *data, size_t len) {
+	if (len < 1) // need at least the message code byte
+		return;
 	msgCode = data[0];
 	switch (msgCode)
 	{
@@ -48,7 +50,7 @@ void executeCommunication(AsyncWebSocketClient * client, uint8_t *data, size_t l
 			sendSerializeObject(client, msgCode, (uint8_t*)&allData.motor, 8);
 			break;
 		case MSG_MOTOR_OUTPUT:
-			sendSerializeObject(client, msgCode, (uint8_t*)&MotorPWM, 4);
+			sendSerializeObject(client, msgCode, (uint8_t*)&MotorPWM, 8);
 			break;
 		case MSG_CAL_GYRO_OFFSET:
 			sendSerializeObject(client, msgCode, (uint8_t*)&gyroOffset, 12);
@@ -62,32 +64,57 @@ void executeCommunication(AsyncWebSocketClient * client, uint8_t *data, size_t l
 			sendSerializeObject(client, msgCode, (uint8_t*)&stabilizerPID, 36);
 			break;
 		case MSG_SET_CAL_GYRO_OFFSET:
+			if (len < 1 + 12) break;
 			setDeserializeObject(data, (uint8_t*)&gyroOffset, 12);
 			break;
 		case MSG_SET_CAL_ACC_MIN_MAX:
+			if (len < 1 + 24) break;
 			setDeserializeObject(data, (uint8_t*)&accelMinMax, 24);
+			applyAccelCalibration();
 			break;
 		case MSG_SET_CAL_MAG:
 			break;
 		case MSG_SET_CAL_PID:
+			if (len < 1 + 36) break;
+			portENTER_CRITICAL(&dataMux);
 			setDeserializeObject(data, (uint8_t*)&stabilizerPID, 36);
+			portEXIT_CRITICAL(&dataMux);
 			break;
 		case MSG_STABILZE_STATE:
 			sendSerializeObject(client, msgCode, (uint8_t*)&stabilzerOn, 1);
 			break;
 		case MSG_SET_STABILZE_STATE:
 			{
+				if (len < 1 + 1) break;
 				uint8_t val;
 				setDeserializeObject(data, (uint8_t*)&val, 1);
 				if (val == 1 && !stabilzerOn)
 					resetSensor();
+				portENTER_CRITICAL(&dataMux);
 				stabilzerOn = val == 1;
+				portEXIT_CRITICAL(&dataMux);
 			}
 			break;
+		case MSG_ACC_CAL_START:
+			startAccelCal();
+			break;
+		case MSG_ACC_CAL_STOP:
+			stopAccelCal();
+			break;
+		case MSG_ACC_CAL_LIVE:
+			sendSerializeObject(client, msgCode, (uint8_t*)getAccelCalLive(), 24);
+			break;
+		case MSG_ACC_CAL_APPLY:
+			applyAccelCalFromCapture();
+			saveConfig();
+			break;
 		case MSG_SET_RC:
+			if (len < 1 + 8) break;
+			portENTER_CRITICAL(&dataMux);
 			rcOnline = true;
 			setDeserializeObject(data, (uint8_t*)&rcCmd, 8);
 			failsafeCounter = 0;
+			portEXIT_CRITICAL(&dataMux);
 			/*Serial.print("RC: ");
 			Serial.print(rcCmd.FWD_BCK);
 			Serial.print(", ");

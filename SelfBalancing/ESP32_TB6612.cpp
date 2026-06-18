@@ -54,8 +54,10 @@ void Motor::brake()
 
 void Motor::standby()
 {
-	if (digitalPinToBitMask(Standby) != LOW)
-		digitalWrite(Standby, LOW);
+	// Pull STBY low to put the TB6612 into standby. The previous code compared
+	// digitalPinToBitMask() (a constant pin mask) against LOW, which never
+	// reflected the pin state; just drive the pin low unconditionally.
+	digitalWrite(Standby, LOW);
 }
 
 void forward(Motor motor1, Motor motor2, int speed)

@@ -19,6 +19,8 @@ unsigned long failsafeCounter;
 bool rcOnline;
 int MotorPWM[2];
 
+portMUX_TYPE dataMux = portMUX_INITIALIZER_UNLOCKED;
+
 float error, errorAngle;
 float delta;
 float gyroTemp;
@@ -68,7 +70,16 @@ void executeStabilizer(uint32_t now) {
 	else
 		dt = currentTime - lastTime;
 	lastTime = currentTime;
-	if (!stabilzerOn) {
+
+	float dtSec = dt / 1000.0f;
+
+	// Snapshot the shared enable flag (written from the web task).
+	bool on;
+	portENTER_CRITICAL(&dataMux);
+	on = stabilzerOn;
+	portEXIT_CRITICAL(&dataMux);
+
+	if (!on) {
 		errorAngleI = 0;
 		errorGyroI[0] = 0;
 		errorGyroI[1] = 0;
@@ -96,6 +107,13 @@ void executeStabilizer(uint32_t now) {
 		motor2.standby();
 		return;
 	}
+
+	// Handle failsafe and take a consistent snapshot of the RC command and PID
+	// gains under the lock so the control loop never reads a half-updated value
+	// while the web task is writing them.
+	stabilizer_t pid;
+	rc_cmd_t cmd;
+	portENTER_CRITICAL(&dataMux);
 	if (rcOnline && failsafeCounter > 250) {
 		rcCmd.FWD_BCK = 0;
 		rcCmd.LFT_RGT = 0;
@@ -109,20 +127,24 @@ void executeStabilizer(uint32_t now) {
 		rcCmd.FWD_BCK = 0;
 		rcCmd.LFT_RGT = 0;
 	}
+	cmd = rcCmd;
+	pid = stabilizerPID;
+	portEXIT_CRITICAL(&dataMux);
 
 	// pitch 
-	rc = rcCmd.FWD_BCK * 0.1f;
+	rc = cmd.FWD_BCK * 0.1f;
 	deltaDeg = allData.YPR[1] - lastDeg;
-	deltaDeg = deltaDeg * dt / 1000.0f;
+	// Derivative: rate of change per second (guard against dt == 0).
+	deltaDeg = (dtSec > 0.0f) ? (deltaDeg / dtSec) : 0.0f;
 	/*Serial.print("RC Pitch: ");
 	Serial.print(rc);*/
 	errorAngle = rc - allData.YPR[1];
-	PTerm = errorAngle * stabilizerPID.angle[0];
+	PTerm = errorAngle * pid.angle[0];
 
 	errorAngleI = constrain(errorAngleI + errorAngle, -90.0f, +90.0f);
-	ITerm = errorAngleI * stabilizerPID.angle[1];
+	ITerm = errorAngleI * pid.angle[1];
 	DTerm = (deltaDeg1 + deltaDeg2 + deltaDeg) / 3;
-	DTerm = DTerm * stabilizerPID.angle[2];
+	DTerm = DTerm * pid.angle[2];
 
 	lastDeg = allData.YPR[1];
 	deltaDeg2 = deltaDeg1;
@@ -134,15 +156,15 @@ void executeStabilizer(uint32_t now) {
 	gyroTemp = allData.imuData.gyro[1]; // y axis
 	error = rc - gyroTemp;
 	delta = gyroTemp - lastGyro[1];
-	delta = delta * dt / 1000.0f;
+	delta = (dtSec > 0.0f) ? (delta / dtSec) : 0.0f;
 
-	PTerm = error * stabilizerPID.pitch[0]; // P
+	PTerm = error * pid.pitch[0]; // P
 
 	errorGyroI[1] = constrain(errorGyroI[1] + error, -500.0f, +500.0f); //max 500 deg/s;
-	ITerm = errorGyroI[1] * stabilizerPID.pitch[1]; //I;
+	ITerm = errorGyroI[1] * pid.pitch[1]; //I;
 
 	DTerm = (delta1[1] + delta2[1] + delta) / 3;
-	DTerm = DTerm * stabilizerPID.pitch[2]; //D;
+	DTerm = DTerm * pid.pitch[2]; //D;
 
 	lastGyro[1] = gyroTemp;
 	delta2[1] = delta1[1];
@@ -150,19 +172,19 @@ void executeStabilizer(uint32_t now) {
 	axisPID[1] = (PTerm + ITerm - DTerm);
 
 	// yaw
-	rc = rcCmd.LFT_RGT;
+	rc = cmd.LFT_RGT;
 	gyroTemp = allData.imuData.gyro[2]; // z axis
 	error = rc - gyroTemp;
 	delta = gyroTemp - lastGyro[2];
-	delta = delta * dt / 1000.0f;
+	delta = (dtSec > 0.0f) ? (delta / dtSec) : 0.0f;
 
-	PTerm = error * stabilizerPID.yaw[0]; // P
+	PTerm = error * pid.yaw[0]; // P
 
 	errorGyroI[2] = constrain(errorGyroI[2] + error, -500.0f, +500.0f); //max 500 deg/s;
-	ITerm = errorGyroI[2] * stabilizerPID.yaw[1]; //I;
+	ITerm = errorGyroI[2] * pid.yaw[1]; //I;
 
 	DTerm = (delta1[2] + delta2[2] + delta) / 3;
-	DTerm = DTerm * stabilizerPID.yaw[2]; //D;
+	DTerm = DTerm * pid.yaw[2]; //D;
 
 	lastGyro[2] = gyroTemp;
 	delta2[2] = delta1[2];

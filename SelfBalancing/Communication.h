@@ -29,6 +29,12 @@
 #define MSG_STABILZE_STATE			51
 #define MSG_SET_STABILZE_STATE		52
 
+// Accelerometer min/max capture (firmware-side running min/max tracking)
+#define MSG_ACC_CAL_START			61	// reset running min/max and start tracking
+#define MSG_ACC_CAL_STOP			62	// stop tracking
+#define MSG_ACC_CAL_LIVE			63	// get current running min/max (24 bytes)
+#define MSG_ACC_CAL_APPLY			64	// copy capture -> accelMinMax, recompute, save
+
 
 #define MSG_SET_RC					101
 

@@ -224,6 +224,29 @@
                 </div>
             </div>
             <div class="row">
+                <div class="col-sm-12">
+                    <div class="panel panel-warning">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Guided Capture (auto min/max)</h3>
+                        </div>
+                        <div class="panel-body">
+                            <p>
+                                Press <b>Start</b>, then slowly hold the robot still in each of the 6 orientations
+                                (each axis pointing straight up, then straight down). The firmware records the
+                                extreme raw values automatically. When all axes reach ~&plusmn;8000, press
+                                <b>Apply &amp; Save</b>.
+                            </p>
+                            <p id="accCalStatus"><b>Status:</b> idle</p>
+                            <div class="form-group">
+                                <button type="button" class="btn btn-success" id="btnAccCalStart" onclick="startAccCal()">Start</button>
+                                <button type="button" class="btn btn-default" id="btnAccCalStop" onclick="stopAccCal()" disabled>Stop</button>
+                                <button type="button" class="btn btn-danger" id="btnAccCalApply" onclick="applyAccCal()" disabled>Apply &amp; Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
                 <div class="col-sm-12 text-right">
                     <button type="button" class="btn btn-primary" onclick="SaveAccMinMax()">Save</button>
                 </div>
@@ -456,8 +479,98 @@
             });
 
             updateData();
+            startCalSocket();
         });
         
+        var calWs = null;
+        var accCalActive = false;
+        var accCalPollTimer = null;
+        var MSG_ACC_CAL_START = 61, MSG_ACC_CAL_STOP = 62, MSG_ACC_CAL_LIVE = 63, MSG_ACC_CAL_APPLY = 64;
+
+        function startCalSocket() {
+            calWs = new WebSocket('ws://' + document.location.host + '/ws', ['esp32']);
+            calWs.binaryType = "arraybuffer";
+            calWs.onopen = function () { console.log("cal ws connected"); };
+            calWs.onclose = function () {
+                console.log("cal ws disconnected");
+                accCalActive = false;
+                setCalButtons(false);
+                $("#accCalStatus").html("<b>Status:</b> disconnected");
+            };
+            calWs.onerror = function (e) { console.log("cal ws error", e); };
+            calWs.onmessage = function (e) {
+                if (!(e.data instanceof ArrayBuffer) || e.data.byteLength < 1) return;
+                var cmd = new Uint8Array(e.data.slice(0, 1))[0];
+                if (cmd == MSG_ACC_CAL_LIVE && e.data.byteLength >= 25) {
+                    var mm = new Float32Array(e.data.slice(1, 25)); // xMin,yMin,zMin,xMax,yMax,zMax
+                    updateCalDisplay(mm);
+                }
+            };
+        }
+
+        function setCalButtons(capturing) {
+            $("#btnAccCalStart").prop("disabled", capturing);
+            $("#btnAccCalStop").prop("disabled", !capturing);
+            $("#btnAccCalApply").prop("disabled", !capturing);
+        }
+
+        function updateCalDisplay(mm) {
+            sliderAccelMinX.setValue(Math.round(mm[0]));
+            sliderAccelMinY.setValue(Math.round(mm[1]));
+            sliderAccelMinZ.setValue(Math.round(mm[2]));
+            sliderAccelMaxX.setValue(Math.round(mm[3]));
+            sliderAccelMaxY.setValue(Math.round(mm[4]));
+            sliderAccelMaxZ.setValue(Math.round(mm[5]));
+            $("#accCalStatus").html(
+                "<b>Status:</b> capturing &nbsp; " +
+                "X[" + Math.round(mm[0]) + " .. " + Math.round(mm[3]) + "] " +
+                "Y[" + Math.round(mm[1]) + " .. " + Math.round(mm[4]) + "] " +
+                "Z[" + Math.round(mm[2]) + " .. " + Math.round(mm[5]) + "]");
+        }
+
+        function canUseWs() {
+            if (!calWs || calWs.readyState !== WebSocket.OPEN) {
+                alert("Not connected to robot yet, try again in a moment.");
+                return false;
+            }
+            return true;
+        }
+
+        function pollAccCalLive() {
+            if (!accCalActive) return;
+            if (calWs && calWs.readyState === WebSocket.OPEN)
+                calWs.send(new Uint8Array([MSG_ACC_CAL_LIVE]));
+            accCalPollTimer = setTimeout(pollAccCalLive, 200);
+        }
+
+        function startAccCal() {
+            if (!canUseWs()) return;
+            calWs.send(new Uint8Array([MSG_ACC_CAL_START]));
+            accCalActive = true;
+            setCalButtons(true);
+            $("#accCalStatus").html("<b>Status:</b> capturing ...");
+            pollAccCalLive();
+        }
+
+        function stopAccCal() {
+            accCalActive = false;
+            if (accCalPollTimer) { clearTimeout(accCalPollTimer); accCalPollTimer = null; }
+            if (calWs && calWs.readyState === WebSocket.OPEN)
+                calWs.send(new Uint8Array([MSG_ACC_CAL_STOP]));
+            setCalButtons(false);
+            $("#accCalStatus").html("<b>Status:</b> stopped");
+        }
+
+        function applyAccCal() {
+            if (!canUseWs()) return;
+            calWs.send(new Uint8Array([MSG_ACC_CAL_APPLY]));
+            accCalActive = false;
+            if (accCalPollTimer) { clearTimeout(accCalPollTimer); accCalPollTimer = null; }
+            setCalButtons(false);
+            $("#accCalStatus").html("<b>Status:</b> applied &amp; saved");
+            setTimeout(updateData, 300); // refresh sliders from stored config
+        }
+
         function toggleStabilizer() {
             $.post('/api/toggleStabilizer', function (response) {
                 if (response && response.success) {

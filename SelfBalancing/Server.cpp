@@ -10,13 +10,9 @@
 #include "Configuration.h"
 #include "Sensor.h"
 #include "Communication.h"
+#include "Secrets.h"
 
 #define hostName       "SelfBalancingRobot"
-#define localSsid      "V1RU$"       // My Local WiFi SSID
-#define localPassword  "@mikochu123"  // My Local WiFi password
-
-#define esp32SSID		"Self Balancing Robot"
-#define esp32Password	"@mikochu123"
 rc_cmd_t rcCmd;
 AsyncWebServer  server(80); // define web server port 80
 AsyncWebSocket ws("/ws");
@@ -29,7 +25,7 @@ void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventT
 		client->ping();
 	}
 	else if (type == WS_EVT_DISCONNECT) {
-		Serial.printf("ws[%s][%u] disconnect: %u\n", server->url(), client->id());
+		Serial.printf("ws[%s][%u] disconnect\n", server->url(), client->id());
 	}
 	else if (type == WS_EVT_ERROR) {
 		Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
@@ -114,7 +110,7 @@ void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventT
 
 }
 void registerServer() {
-	server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html").setCacheControl("max-age=600");
+	server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html").setCacheControl("max-age=600").setAuthentication(HTTP_AUTH_USER, HTTP_AUTH_PASS);
 
 
 	// REST API
@@ -221,6 +217,7 @@ void registerServer() {
 		request->send(200, "application/json", resultJsonValue);
 	});
 	server.on("/api/savePID", HTTP_POST, [](AsyncWebServerRequest *request) {
+		if (!request->authenticate(HTTP_AUTH_USER, HTTP_AUTH_PASS)) return request->requestAuthentication();
 		DynamicJsonDocument resultDoc(1024);
 		String resultJsonValue;
 		if (request->hasParam("pid", true)) {
@@ -233,15 +230,22 @@ void registerServer() {
 				resultDoc["error"] = "error deserialize Json";
 			}
 			else {
-				stabilizerPID.yaw[0] = postDoc["yaw"]["P"];
-				stabilizerPID.yaw[1] = postDoc["yaw"]["I"];
-				stabilizerPID.yaw[2] = postDoc["yaw"]["D"];
-				stabilizerPID.pitch[0] = postDoc["pitch"]["P"];
-				stabilizerPID.pitch[1] = postDoc["pitch"]["I"];
-				stabilizerPID.pitch[2] = postDoc["pitch"]["D"];
-				stabilizerPID.angle[0] = postDoc["angle"]["P"];
-				stabilizerPID.angle[1] = postDoc["angle"]["I"];
-				stabilizerPID.angle[2] = postDoc["angle"]["D"];
+				// Parse into a local struct first; keep the critical section to a
+				// single struct copy (no JSON work while interrupts are disabled).
+				stabilizer_t newPID;
+				newPID.yaw[0] = postDoc["yaw"]["P"];
+				newPID.yaw[1] = postDoc["yaw"]["I"];
+				newPID.yaw[2] = postDoc["yaw"]["D"];
+				newPID.pitch[0] = postDoc["pitch"]["P"];
+				newPID.pitch[1] = postDoc["pitch"]["I"];
+				newPID.pitch[2] = postDoc["pitch"]["D"];
+				newPID.angle[0] = postDoc["angle"]["P"];
+				newPID.angle[1] = postDoc["angle"]["I"];
+				newPID.angle[2] = postDoc["angle"]["D"];
+
+				portENTER_CRITICAL(&dataMux);
+				stabilizerPID = newPID;
+				portEXIT_CRITICAL(&dataMux);
 
 				Serial.println("PID Saved");
 				resultDoc["success"] = true;
@@ -256,6 +260,7 @@ void registerServer() {
 		request->send(200, "application/json", resultJsonValue);
 	});
 	server.on("/api/saveGyroOffset", HTTP_POST, [](AsyncWebServerRequest *request) {
+		if (!request->authenticate(HTTP_AUTH_USER, HTTP_AUTH_PASS)) return request->requestAuthentication();
 		DynamicJsonDocument resultDoc(1024);
 		String resultJsonValue;
 		if (request->hasParam("gyroOffset", true)) {
@@ -285,6 +290,7 @@ void registerServer() {
 		request->send(200, "application/json", resultJsonValue);
 	});
 	server.on("/api/saveAccMinMax", HTTP_POST, [](AsyncWebServerRequest *request) {
+		if (!request->authenticate(HTTP_AUTH_USER, HTTP_AUTH_PASS)) return request->requestAuthentication();
 		DynamicJsonDocument resultDoc(1024);
 		String resultJsonValue;
 		if (request->hasParam("accMinMax", true)) {
@@ -304,6 +310,7 @@ void registerServer() {
 				accelMinMax[4] = postDoc["max"]["y"];
 				accelMinMax[5] = postDoc["max"]["z"];
 
+				applyAccelCalibration();
 				Serial.println("Acc Min Max Saved");
 				resultDoc["success"] = true;
 				saveConfig();
@@ -317,6 +324,7 @@ void registerServer() {
 		request->send(200, "application/json", resultJsonValue);
 	});
 	server.on("/api/resetCfg", HTTP_POST, [](AsyncWebServerRequest *request) {
+		if (!request->authenticate(HTTP_AUTH_USER, HTTP_AUTH_PASS)) return request->requestAuthentication();
 		DynamicJsonDocument resultDoc(1024);
 		String resultJsonValue;
 		resetConfig();
@@ -326,6 +334,7 @@ void registerServer() {
 		ESP.restart();
 	});
 	server.on("/api/reloadCfg", HTTP_POST, [](AsyncWebServerRequest *request) {
+		if (!request->authenticate(HTTP_AUTH_USER, HTTP_AUTH_PASS)) return request->requestAuthentication();
 		DynamicJsonDocument resultDoc(1024);
 		String resultJsonValue;
 		loadConfig();
@@ -334,6 +343,7 @@ void registerServer() {
 		request->send(200, "application/json", resultJsonValue);
 	});
 	server.on("/api/restart", HTTP_POST, [](AsyncWebServerRequest *request) {
+		if (!request->authenticate(HTTP_AUTH_USER, HTTP_AUTH_PASS)) return request->requestAuthentication();
 		DynamicJsonDocument resultDoc(1024);
 		String resultJsonValue;
 		resultDoc["success"] = true;
@@ -342,12 +352,16 @@ void registerServer() {
 		ESP.restart();
 	});
 	server.on("/api/toggleStabilizer", HTTP_POST, [](AsyncWebServerRequest *request) {
+		if (!request->authenticate(HTTP_AUTH_USER, HTTP_AUTH_PASS)) return request->requestAuthentication();
 		DynamicJsonDocument resultDoc(1024);
 		String resultJsonValue;
+		portENTER_CRITICAL(&dataMux);
 		stabilzerOn = !stabilzerOn;
+		bool nowOn = stabilzerOn;
+		portEXIT_CRITICAL(&dataMux);
 		resultDoc["success"] = true;
-		resultDoc["state"] = stabilzerOn ? "ON" : "OFF";
-		if (stabilzerOn)
+		resultDoc["state"] = nowOn ? "ON" : "OFF";
+		if (nowOn)
 			resetSensor();
 		serializeJson(resultDoc, resultJsonValue);
 		request->send(200, "application/json", resultJsonValue);
@@ -355,6 +369,7 @@ void registerServer() {
 
 
 
+	ws.setAuthentication(HTTP_AUTH_USER, HTTP_AUTH_PASS);
 	ws.onEvent(onWsEvent);
 	server.addHandler(&ws);
 
@@ -368,15 +383,27 @@ void initServer() {
 	WiFi.mode(WIFI_AP_STA);
 	WiFi.softAPdisconnect(true);
 	WiFi.setHostname(hostName);
-	WiFi.begin(localSsid, localPassword);
+	WiFi.begin(WIFI_STA_SSID, WIFI_STA_PASSWORD);
 
-	// Wait for connection
-	while (WiFi.status() != WL_CONNECTED) {
+	// Wait for STA connection, but don't block boot forever.
+	// If the home network is unavailable we still continue and bring up
+	// the robot's own AP so it stays controllable.
+	const unsigned long wifiTimeout = 10000; // ms
+	unsigned long wifiStart = millis();
+	while (WiFi.status() != WL_CONNECTED && (millis() - wifiStart) < wifiTimeout) {
+		delay(250);
+	}
+	if (WiFi.status() == WL_CONNECTED) {
+		Serial.print("WiFi STA connected, IP: ");
+		Serial.println(WiFi.localIP());
+	}
+	else {
+		Serial.println("WiFi STA connect timed out, starting AP-only mode");
 	}
 
 	WiFi.softAPsetHostname(hostName);
 	WiFi.softAPdisconnect(false);
-	WiFi.softAP(esp32SSID, esp32Password, 1, 0, 4);
+	WiFi.softAP(WIFI_AP_SSID, WIFI_AP_PASSWORD, 1, 0, 4);
 	MDNS.addService("http", "tcp", 80);
 	registerServer();
 

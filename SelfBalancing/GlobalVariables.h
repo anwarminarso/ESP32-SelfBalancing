@@ -20,4 +20,9 @@ extern int MotorPWM[2];
 extern bool stabilzerOn;
 extern unsigned long failsafeCounter;
 
+// Spinlock guarding data shared between the control-loop task (scheduler)
+// and the AsyncTCP/web-server task: stabilizerPID, rcCmd, stabilzerOn,
+// rcOnline, failsafeCounter.
+extern portMUX_TYPE dataMux;
+
 #endif

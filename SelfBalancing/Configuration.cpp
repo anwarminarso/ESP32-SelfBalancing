@@ -1,6 +1,7 @@
 #include "Configuration.h"
 #include "TypeDefStruct.h"
 #include "GlobalVariables.h"
+#include "Sensor.h"
 #include <Preferences.h>
 Preferences prefs;
 
@@ -33,6 +34,7 @@ void loadConfig() {
 		resetConfig();
 	else
 		Serial.println("Config Loaded");
+	applyAccelCalibration();
 }
 
 void resetConfig() {
@@ -66,6 +68,7 @@ void resetConfig() {
 	prefs.putBytes("gyroOffset", (uint8_t*)&gyroOffset, sizeof(gyroOffset));
 	prefs.end();
 
+	applyAccelCalibration();
 	Serial.println("Reset Config");
 }
 

@@ -6,3 +6,6 @@
 *.filters
 *.user
 *.sln
+
+# Local credentials (copy Secrets.example.h -> Secrets.h)
+**/Secrets.h
